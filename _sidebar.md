@@ -1,0 +1,7 @@
+* [🚀 Quick Install](/INSTALL.md)
+* [📚 Documentation](/documentation/)
+  * [Getting Started](/documentation/getting-started/)
+  * [API Reference](/documentation/api-reference/)
+  * [Examples](/documentation/examples/)
+* [🧪 Testing Suite](/tests/)
+  * [Test Cases](/tests/test-cases/)

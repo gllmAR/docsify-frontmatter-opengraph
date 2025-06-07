@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unit Tests - Docsify Frontmatter OpenGraph</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-suite { margin: 30px 0; border: 2px solid #ddd; padding: 20px; }
+        .test { margin: 15px 0; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        .pass { background-color: #d4edda; border-color: #c3e6cb; }
+        .fail { background-color: #f8d7da; border-color: #f5c6cb; }
+        .test-name { font-weight: bold; margin-bottom: 10px; }
+        .result { margin-top: 10px; }
+        .summary { background: #e9ecef; padding: 15px; margin: 20px 0; border-radius: 4px; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 4px; font-size: 12px; }
+        h1 { color: #333; }
+        h2 { color: #666; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Unit Tests - Docsify Frontmatter OpenGraph Plugin</h1>
+    <div id="test-summary" class="summary"></div>
+    <div id="test-results"></div>
+
+    <!-- Load plugin with test exposure -->
+    <script>
+        // Enhanced plugin version that exposes functions for testing
+        (function () {
+            'use strict';
+            
+            // Helper: Enhanced YAML front-matter parser with error handling
+            function parseFrontMatter(content) {
+                try {
+                    if (!content || typeof content !== 'string') {
+                        return {};
+                    }
+                    
+                    var match = content.match(/^---([\s\S]*?)---/);
+                    if (!match) return {};
+                    
+                    var yaml = match[1];
+                    var obj = {};
+                    
+                    yaml.split(/\r?\n/).forEach(function (line) {
+                        line = line.trim();
+                        if (!line || line.startsWith('#')) return;
+                        
+                        var colonIndex = line.indexOf(':');
+                        if (colonIndex === -1) return;
+                        
+                        var key = line.substring(0, colonIndex).trim();
+                        var value = line.substring(colonIndex + 1).trim();
+                        
+                        if ((value.startsWith('"') && value.endsWith('"')) || 
+                            (value.startsWith("'") && value.endsWith("'"))) {
+                            value = value.slice(1, -1);
+                        }
+                        
+                        if (key && value) {
+                            obj[key] = value;
+                        }
+                    });
+                    
+                    return obj;
+                } catch (error) {
+                    console.warn('Error parsing front-matter:', error);
+                    return {};
+                }
+            }
+
+            function removeMetaTags() {
+                try {
+                    var selectors = [
+                        'meta[property^="og:"]',
+                        'meta[name^="twitter:"]'
+                    ];
+                    selectors.forEach(function (sel) {
+                        var elements = document.querySelectorAll(sel);
+                        for (var i = 0; i < elements.length; i++) {
+                            var el = elements[i];
+                            if (el && el.parentNode) {
+                                el.parentNode.removeChild(el);
+                            }
+                        }
+                    });
+                } catch (error) {
+                    console.warn('Error removing meta tags:', error);
+                }
+            }
+
+            function insertMetaTag(attr, name, content) {
+                try {
+                    if (!content || !name || !attr) return false;
+                    
+                    var meta = document.createElement('meta');
+                    meta.setAttribute(attr, name);
+                    meta.setAttribute('content', content);
+                    
+                    if (document.head) {
+                        document.head.appendChild(meta);
+                        return true;
+                    } else {
+                        console.warn('Document head not found');
+                        return false;
+                    }
+                } catch (error) {
+                    console.warn('Error inserting meta tag:', error);
+                    return false;
+                }
+            }
+
+            function getImageUrl(img, basePath) {
+                try {
+                    if (!img) return null;
+                    
+                    if (/^https?:\/\//.test(img)) return img;
+                    
+                    if (img.charAt(0) === '/') {
+                        return location.origin + img;
+                    }
+                    
+                    var cleanBasePath = basePath.replace(/\/[^/]*$/, '/');
+                    return location.origin + cleanBasePath + img;
+                } catch (error) {
+                    console.warn('Error processing image URL:', error);
+                    return null;
+                }
+            }
+
+            function getCoverImage(basePath) {
+                try {
+                    var covers = ['cover.jpg', 'cover.png', 'cover.gif'];
+                    var cleanBasePath = basePath.replace(/\/[^/]*$/, '/');
+                    
+                    for (var i = 0; i < covers.length; i++) {
+                        var url = cleanBasePath + covers[i];
+                        return location.origin + url;
+                    }
+                    
+                    return null;
+                } catch (error) {
+                    console.warn('Error getting cover image:', error);
+                    return null;
+                }
+            }
+
+            function substituteVariables(content, frontMatter) {
+                try {
+                    if (!content || typeof content !== 'string' || !frontMatter) {
+                        return content;
+                    }
+
+                    return content.replace(/\{\{([^}]+)\}\}/g, function(match, variable) {
+                        var key = variable.trim();
+                        if (frontMatter.hasOwnProperty(key)) {
+                            return frontMatter[key];
+                        }
+                        return match;
+                    });
+                } catch (error) {
+                    console.warn('Error substituting variables:', error);
+                    return content;
+                }
+            }
+
+            // Expose functions for testing
+            window.PluginTestAPI = {
+                parseFrontMatter: parseFrontMatter,
+                removeMetaTags: removeMetaTags,
+                insertMetaTag: insertMetaTag,
+                getImageUrl: getImageUrl,
+                getCoverImage: getCoverImage,
+                substituteVariables: substituteVariables
+            };
+
+            // Original plugin registration
+            window.$docsify = window.$docsify || {};
+            window.$docsify.plugins = [].concat(function (hook, vm) {
+                hook.afterEach(function (html, next) {
+                    try {
+                        var content = '';
+                        if (vm && vm.route && vm.route.file && vm.route.file.content) {
+                            content = vm.route.file.content;
+                        }
+                        
+                        var frontMatter = parseFrontMatter(content);
+                        var title = frontMatter.title || document.title || 'Untitled';
+                        var description = frontMatter.description || 
+                            (document.querySelector('meta[name="description"]') ? 
+                             document.querySelector('meta[name="description"]').getAttribute('content') : '') || '';
+                        var type = frontMatter.type || 'article';
+                        var basePath = (vm && vm.route && vm.route.path) ? vm.route.path : '/';
+                        var image = getImageUrl(frontMatter.image, basePath) || getCoverImage(basePath);
+
+                        removeMetaTags();
+
+                        insertMetaTag('property', 'og:title', title);
+                        insertMetaTag('property', 'og:description', description);
+                        insertMetaTag('property', 'og:type', type);
+                        insertMetaTag('property', 'og:url', location.href);
+                        if (image) insertMetaTag('property', 'og:image', image);
+
+                        insertMetaTag('name', 'twitter:card', image ? 'summary_large_image' : 'summary');
+                        insertMetaTag('name', 'twitter:title', title);
+                        insertMetaTag('name', 'twitter:description', description);
+                        if (image) insertMetaTag('name', 'twitter:image', image);
+
+                    } catch (error) {
+                        console.error('Error in frontmatter-opengraph plugin:', error);
+                    } finally {
+                        next(html);
+                    }
+                });
+            }, window.$docsify.plugins);
+        })();
+    </script>
+
+    <script>
+        // Test framework
+        let testResults = {
+            total: 0,
+            passed: 0,
+            failed: 0,
+            suites: []
+        };
+
+        function createTestSuite(name) {
+            const suite = {
+                name: name,
+                tests: [],
+                passed: 0,
+                failed: 0
+            };
+            testResults.suites.push(suite);
+            return suite;
+        }
+
+        function addTest(suite, name, testFn) {
+            suite.tests.push({ name, testFn });
+        }
+
+        function runTests() {
+            const resultsDiv = document.getElementById('test-results');
+            
+            testResults.suites.forEach(suite => {
+                const suiteDiv = document.createElement('div');
+                suiteDiv.className = 'test-suite';
+                suiteDiv.innerHTML = `<h2>${suite.name}</h2>`;
+                
+                suite.tests.forEach(test => {
+                    testResults.total++;
+                    
+                    const testDiv = document.createElement('div');
+                    testDiv.className = 'test';
+                    
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'test-name';
+                    nameDiv.textContent = test.name;
+                    testDiv.appendChild(nameDiv);
+
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result';
+                    
+                    try {
+                        const result = test.testFn();
+                        if (result.pass) {
+                            testDiv.classList.add('pass');
+                            resultDiv.innerHTML = `<strong>✅ PASS:</strong> ${result.message}`;
+                            suite.passed++;
+                            testResults.passed++;
+                        } else {
+                            testDiv.classList.add('fail');
+                            resultDiv.innerHTML = `<strong>❌ FAIL:</strong> ${result.message}`;
+                            suite.failed++;
+                            testResults.failed++;
+                        }
+                    } catch (error) {
+                        testDiv.classList.add('fail');
+                        resultDiv.innerHTML = `<strong>💥 ERROR:</strong> ${error.message}`;
+                        suite.failed++;
+                        testResults.failed++;
+                    }
+                    
+                    testDiv.appendChild(resultDiv);
+                    suiteDiv.appendChild(testDiv);
+                });
+                
+                resultsDiv.appendChild(suiteDiv);
+            });
+
+            // Update summary
+            const summaryDiv = document.getElementById('test-summary');
+            summaryDiv.innerHTML = `
+                <h3>Test Summary</h3>
+                <p><strong>Total:</strong> ${testResults.total} | 
+                   <strong style="color: green;">Passed:</strong> ${testResults.passed} | 
+                   <strong style="color: red;">Failed:</strong> ${testResults.failed}</p>
+                <p><strong>Success Rate:</strong> ${((testResults.passed / testResults.total) * 100).toFixed(1)}%</p>
+            `;
+        }
+
+        // Test Suites
+        window.addEventListener('load', function() {
+            // Front-matter parsing tests
+            const frontMatterSuite = createTestSuite('Front-matter Parsing');
+            
+            addTest(frontMatterSuite, 'Parse valid front-matter', function() {
+                const content = `---
+title: Test Title
+description: Test Description
+image: test.jpg
+type: website
+---
+# Content`;
+                
+                const result = window.PluginTestAPI.parseFrontMatter(content);
+                return {
+                    pass: result.title === 'Test Title' && 
+                          result.description === 'Test Description' &&
+                          result.image === 'test.jpg' &&
+                          result.type === 'website',
+                    message: `Parsed: ${JSON.stringify(result)}`
+                };
+            });
+
+            addTest(frontMatterSuite, 'Handle quoted values', function() {
+                const content = `---
+title: "Quoted Title"
+description: 'Single quoted'
+---
+# Content`;
+                
+                const result = window.PluginTestAPI.parseFrontMatter(content);
+                return {
+                    pass: result.title === 'Quoted Title' && 
+                          result.description === 'Single quoted',
+                    message: `Parsed: ${JSON.stringify(result)}`
+                };
+            });
+
+            addTest(frontMatterSuite, 'Skip comments and malformed lines', function() {
+                const content = `---
+# This is a comment
+title: Valid Title
+invalid line without colon
+description: Valid Description
+---
+# Content`;
+                
+                const result = window.PluginTestAPI.parseFrontMatter(content);
+                return {
+                    pass: result.title === 'Valid Title' && 
+                          result.description === 'Valid Description' &&
+                          !result.hasOwnProperty('# This is a comment'),
+                    message: `Parsed: ${JSON.stringify(result)}`
+                };
+            });
+
+            addTest(frontMatterSuite, 'Handle empty/null content', function() {
+                const result1 = window.PluginTestAPI.parseFrontMatter(null);
+                const result2 = window.PluginTestAPI.parseFrontMatter('');
+                const result3 = window.PluginTestAPI.parseFrontMatter('# No frontmatter');
+                
+                return {
+                    pass: Object.keys(result1).length === 0 && 
+                          Object.keys(result2).length === 0 &&
+                          Object.keys(result3).length === 0,
+                    message: `Results: ${JSON.stringify([result1, result2, result3])}`
+                };
+            });
+
+            // Image URL tests
+            const imageUrlSuite = createTestSuite('Image URL Resolution');
+            
+            addTest(imageUrlSuite, 'Handle absolute URLs', function() {
+                const result = window.PluginTestAPI.getImageUrl('https://example.com/image.jpg', '/docs/page.md');
+                return {
+                    pass: result === 'https://example.com/image.jpg',
+                    message: `Result: ${result}`
+                };
+            });
+
+            addTest(imageUrlSuite, 'Handle root-relative paths', function() {
+                const result = window.PluginTestAPI.getImageUrl('/images/cover.jpg', '/docs/page.md');
+                return {
+                    pass: result === location.origin + '/images/cover.jpg',
+                    message: `Result: ${result}`
+                };
+            });
+
+            addTest(imageUrlSuite, 'Handle relative paths', function() {
+                const result = window.PluginTestAPI.getImageUrl('cover.jpg', '/docs/page.md');
+                return {
+                    pass: result === location.origin + '/docs/cover.jpg',
+                    message: `Result: ${result}`
+                };
+            });
+
+            addTest(imageUrlSuite, 'Handle null/empty images', function() {
+                const result1 = window.PluginTestAPI.getImageUrl(null, '/docs/page.md');
+                const result2 = window.PluginTestAPI.getImageUrl('', '/docs/page.md');
+                
+                return {
+                    pass: result1 === null && result2 === null,
+                    message: `Results: ${result1}, ${result2}`
+                };
+            });
+
+            // Cover image tests
+            const coverImageSuite = createTestSuite('Cover Image Fallback');
+            
+            addTest(coverImageSuite, 'Generate cover image URLs', function() {
+                const result = window.PluginTestAPI.getCoverImage('/docs/page.md');
+                return {
+                    pass: result === location.origin + '/docs/cover.jpg',
+                    message: `Result: ${result}`
+                };
+            });
+
+            // Meta tag tests
+            const metaTagSuite = createTestSuite('Meta Tag Management');
+            
+            addTest(metaTagSuite, 'Insert meta tag', function() {
+                // Clean up first
+                window.PluginTestAPI.removeMetaTags();
+                
+                const success = window.PluginTestAPI.insertMetaTag('property', 'og:test', 'test-value');
+                const metaTag = document.querySelector('meta[property="og:test"]');
+                
+                return {
+                    pass: success && metaTag && metaTag.getAttribute('content') === 'test-value',
+                    message: `Success: ${success}, Found tag: ${!!metaTag}, Content: ${metaTag?.getAttribute('content')}`
+                };
+            });
+
+            addTest(metaTagSuite, 'Remove meta tags', function() {
+                // Add some test meta tags
+                window.PluginTestAPI.insertMetaTag('property', 'og:test1', 'value1');
+                window.PluginTestAPI.insertMetaTag('name', 'twitter:test1', 'value1');
+                
+                window.PluginTestAPI.removeMetaTags();
+                
+                const ogTags = document.querySelectorAll('meta[property^="og:"]');
+                const twitterTags = document.querySelectorAll('meta[name^="twitter:"]');
+                
+                return {
+                    pass: ogTags.length === 0 && twitterTags.length === 0,
+                    message: `OpenGraph tags: ${ogTags.length}, Twitter tags: ${twitterTags.length}`
+                };
+            });
+
+            addTest(metaTagSuite, 'Handle invalid inputs', function() {
+                const success1 = window.PluginTestAPI.insertMetaTag('', 'test', 'value');
+                const success2 = window.PluginTestAPI.insertMetaTag('property', '', 'value');
+                const success3 = window.PluginTestAPI.insertMetaTag('property', 'test', '');
+                
+                return {
+                    pass: !success1 && !success2 && !success3,
+                    message: `Results: ${success1}, ${success2}, ${success3}`
+                };
+            });
+
+            // Variable substitution tests
+            const variableSubstitutionSuite = createTestSuite('Variable Substitution');
+            
+            addTest(variableSubstitutionSuite, 'Basic variable substitution', function() {
+                const content = 'Hello {{name}}, welcome to {{project}}!';
+                const frontMatter = { name: 'John', project: 'Test Project' };
+                const result = window.PluginTestAPI.substituteVariables(content, frontMatter);
+                
+                return {
+                    pass: result === 'Hello John, welcome to Test Project!',
+                    message: `Result: "${result}"`
+                };
+            });
+
+            addTest(variableSubstitutionSuite, 'Multiple same variables', function() {
+                const content = '{{title}} - {{title}} ({{title}})';
+                const frontMatter = { title: 'Demo' };
+                const result = window.PluginTestAPI.substituteVariables(content, frontMatter);
+                
+                return {
+                    pass: result === 'Demo - Demo (Demo)',
+                    message: `Result: "${result}"`
+                };
+            });
+
+            addTest(variableSubstitutionSuite, 'Missing variables unchanged', function() {
+                const content = '{{title}} has {{missing}} variable';
+                const frontMatter = { title: 'Test' };
+                const result = window.PluginTestAPI.substituteVariables(content, frontMatter);
+                
+                return {
+                    pass: result === 'Test has {{missing}} variable',
+                    message: `Result: "${result}"`
+                };
+            });
+
+            addTest(variableSubstitutionSuite, 'HTML content substitution', function() {
+                const content = '<h1>{{title}}</h1><p>{{description}}</p>';
+                const frontMatter = { title: 'Page Title', description: 'Page description' };
+                const result = window.PluginTestAPI.substituteVariables(content, frontMatter);
+                
+                return {
+                    pass: result === '<h1>Page Title</h1><p>Page description</p>',
+                    message: `Result: "${result}"`
+                };
+            });
+
+            addTest(variableSubstitutionSuite, 'Whitespace in variables', function() {
+                const content = '{{ title }} and {{  description  }}';
+                const frontMatter = { title: 'Test', description: 'Desc' };
+                const result = window.PluginTestAPI.substituteVariables(content, frontMatter);
+                
+                return {
+                    pass: result === 'Test and Desc',
+                    message: `Result: "${result}"`
+                };
+            });
+
+            addTest(variableSubstitutionSuite, 'Handle null/empty inputs', function() {
+                const result1 = window.PluginTestAPI.substituteVariables(null, {});
+                const result2 = window.PluginTestAPI.substituteVariables('', {});
+                const result3 = window.PluginTestAPI.substituteVariables('test', null);
+                
+                return {
+                    pass: result1 === null && result2 === '' && result3 === 'test',
+                    message: `Results: ${result1}, "${result2}", "${result3}"`
+                };
+            });
+
+            // Run all tests
+            runTests();
+        });
+    </script>
+</body>
+</html>

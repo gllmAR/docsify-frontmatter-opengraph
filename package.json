@@ -1,0 +1,39 @@
+{
+  "name": "docsify-frontmatter-opengraph",
+  "version": "1.0.0",
+  "description": "A robust Docsify plugin that automatically generates Open Graph and Twitter Card meta tags from YAML front-matter in your Markdown files",
+  "main": "docsify-frontmatter-opengraph.js",
+  "keywords": [
+    "docsify",
+    "plugin",
+    "opengraph",
+    "twitter-card",
+    "meta-tags",
+    "social-sharing",
+    "yaml",
+    "front-matter",
+    "seo"
+  ],
+  "author": "Plugin Developer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gllmAR/docsify-frontmatter-opengraph.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gllmAR/docsify-frontmatter-opengraph/issues"
+  },
+  "homepage": "https://github.com/gllmAR/docsify-frontmatter-opengraph#readme",
+  "files": [
+    "docsify-frontmatter-opengraph.js",
+    "README.md",
+    "INSTALL.md"
+  ],
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "browserslist": [
+    "IE >= 9",
+    "last 2 versions"
+  ]
+}

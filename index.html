@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, shrink-to-fit=no, viewport-fit=cover">
+
+    <title>Docsify Frontmatter OpenGraph Plugin</title>
+    <meta name="description" content="A robust Docsify plugin that automatically generates Open Graph and Twitter Card meta tags from YAML front-matter in your Markdown files">
+
+    <!-- Core Theme -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/themes/core.min.css">
+    
+    <!-- Dark Mode Support -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/themes/addons/core-dark.min.css" media="(prefers-color-scheme: dark)" />
+</head>
+
+<body>
+    <div id="app"></div>
+
+    <script>
+        // Docsify Configuration
+        window.$docsify = {
+            name: 'Docsify Frontmatter OpenGraph Plugin',
+            repo: 'https://github.com/gllmAR/docsify-frontmatter-opengraph',
+            homepage: 'README.md',
+
+            // Sidebar Configuration
+            auto2top: true,
+            loadSidebar: true,
+            maxLevel: 3,
+            subMaxLevel: 2,
+
+            // Search Plugin Configuration
+            search: {
+                placeholder: '🔍 Search...',
+                noData: 'No results found',
+                depth: 3,
+            },
+
+            // Copy Code Plugin Configuration    
+            copyCode: {
+                buttonText: '📝 Copy',
+                errorText: '⚠️ Error',
+                successText: '✅ Copied',
+            },
+            
+            // Default OpenGraph Configuration
+            // These values will be used as fallbacks when front-matter doesn't specify them
+            frontmatterOpenGraph: {
+                siteName: 'Docsify Frontmatter OpenGraph Plugin',
+                defaultTitle: 'Docsify Frontmatter OpenGraph Plugin',
+                defaultDescription: 'A robust Docsify plugin that automatically generates Open Graph and Twitter Card meta tags from YAML front-matter in your Markdown files.',
+                defaultImage: './cover.jpg',
+                defaultType: 'website',
+                defaultAuthor: 'Plugin Developer',
+                twitterHandle: '@docsify',
+                locale: 'en_US'
+            },
+        };
+    </script>
+
+    <!-- Required Docsify Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/docsify.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/plugins/search.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
+
+    <!-- Docsify Frontmatter OpenGraph Plugin -->
+    <script src="./docsify-frontmatter-opengraph.js"></script>
+    
+</body>
+
+</html>
