@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Sharing URL Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; }
+        .generator { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        .url-group { margin: 15px 0; }
+        .url { background: #e9ecef; padding: 10px; border-radius: 4px; font-family: monospace; word-break: break-all; }
+        .copy-btn { background: #007bff; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; margin-left: 10px; }
+        .copy-btn:hover { background: #0056b3; }
+        .social-links { margin: 20px 0; }
+        .social-links a { display: inline-block; margin: 5px 10px 5px 0; padding: 8px 16px; background: #007bff; color: white; text-decoration: none; border-radius: 4px; }
+        .social-links a:hover { background: #0056b3; }
+        .fb { background: #1877f2; }
+        .twitter { background: #1da1f2; }
+        .linkedin { background: #0077b5; }
+        h1 { color: #333; }
+        h2 { color: #666; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .note { background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 4px; margin: 20px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔗 Social Sharing URL Generator</h1>
+    <p>Generate URLs that social media crawlers can properly read without JavaScript execution.</p>
+
+    <div class="note">
+        <strong>💡 How it works:</strong> These URLs include a <code>?share=page</code> parameter that updates the meta tags 
+        <em>before</em> social media crawlers read them, then redirects users to the actual page.
+    </div>
+
+    <div class="generator">
+        <h2>🎯 Available Pages</h2>
+        
+        <div class="url-group">
+            <strong>📚 Documentation</strong>
+            <div class="url" id="docs-url">https://gllmar.github.io/docsify-frontmatter-opengraph/?share=documentation</div>
+            <button class="copy-btn" onclick="copyUrl('docs-url')">Copy</button>
+        </div>
+
+        <div class="url-group">
+            <strong>🚀 Getting Started</strong>
+            <div class="url" id="start-url">https://gllmar.github.io/docsify-frontmatter-opengraph/?share=getting-started</div>
+            <button class="copy-btn" onclick="copyUrl('start-url')">Copy</button>
+        </div>
+
+        <div class="url-group">
+            <strong>📖 API Reference</strong>
+            <div class="url" id="api-url">https://gllmar.github.io/docsify-frontmatter-opengraph/?share=api-reference</div>
+            <button class="copy-btn" onclick="copyUrl('api-url')">Copy</button>
+        </div>
+
+        <div class="url-group">
+            <strong>💡 Examples</strong>
+            <div class="url" id="examples-url">https://gllmar.github.io/docsify-frontmatter-opengraph/?share=examples</div>
+            <button class="copy-btn" onclick="copyUrl('examples-url')">Copy</button>
+        </div>
+
+        <div class="url-group">
+            <strong>🧪 Testing Suite</strong>
+            <div class="url" id="tests-url">https://gllmar.github.io/docsify-frontmatter-opengraph/?share=tests</div>
+            <button class="copy-btn" onclick="copyUrl('tests-url')">Copy</button>
+        </div>
+    </div>
+
+    <h2>🧪 Test Social Media Sharing</h2>
+    <p>Use these links to test how your URLs appear on different social platforms:</p>
+
+    <div class="social-links">
+        <a href="https://developers.facebook.com/tools/debug/" target="_blank" class="fb">Facebook Debugger</a>
+        <a href="https://cards-dev.twitter.com/validator" target="_blank" class="twitter">Twitter Validator</a>
+        <a href="https://www.linkedin.com/post-inspector/" target="_blank" class="linkedin">LinkedIn Inspector</a>
+        <a href="https://www.opengraph.xyz/" target="_blank">OpenGraph Checker</a>
+    </div>
+
+    <h2>📋 Usage Instructions</h2>
+    <ol>
+        <li><strong>Copy a sharing URL</strong> from above</li>
+        <li><strong>Test it</strong> in one of the social media validators</li>
+        <li><strong>Share the URL</strong> on social media platforms</li>
+        <li><strong>Users will be redirected</strong> to the actual page content</li>
+    </ol>
+
+    <div class="note">
+        <strong>🔍 Testing Example:</strong><br>
+        1. Copy the Documentation URL: <code>https://gllmar.github.io/docsify-frontmatter-opengraph/?share=documentation</code><br>
+        2. Paste it into <a href="https://www.opengraph.xyz/" target="_blank">OpenGraph.xyz</a><br>
+        3. You should see "Documentation" as the title, not "Docsify Frontmatter OpenGraph Plugin"
+    </div>
+
+    <script>
+        function copyUrl(elementId) {
+            const element = document.getElementById(elementId);
+            const url = element.textContent;
+            
+            navigator.clipboard.writeText(url).then(function() {
+                const button = element.nextElementSibling;
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.style.background = '#28a745';
+                
+                setTimeout(function() {
+                    button.textContent = originalText;
+                    button.style.background = '#007bff';
+                }, 2000);
+            }).catch(function(err) {
+                console.error('Could not copy text: ', err);
+                alert('Could not copy URL. Please copy manually.');
+            });
+        }
+
+        // Auto-test the current page
+        window.addEventListener('load', function() {
+            const testUrl = 'https://gllmar.github.io/docsify-frontmatter-opengraph/?share=documentation';
+            console.log('🧪 Test this URL in social media validators:', testUrl);
+        });
+    </script>
+</body>
+</html>

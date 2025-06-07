@@ -1,0 +1,17 @@
+# Netlify configuration for social media crawler support
+[build]
+  publish = "."
+  
+# Prerender for social media crawlers
+[[plugins]]
+  package = "@netlify/plugin-prerender"
+  
+  [plugins.inputs]
+    # Only prerender for social media crawlers
+    crawlerUserAgents = [
+      "facebookexternalhit",
+      "twitterbot", 
+      "linkedinbot",
+      "slackbot",
+      "whatsapp"
+    ]

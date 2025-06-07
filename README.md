@@ -2,7 +2,7 @@
 title: Docsify Frontmatter OpenGraph Plugin
 description: A robust Docsify plugin that automatically generates Open Graph and Twitter Card meta tags from YAML front-matter in your Markdown files
 author: Plugin Developer
-version: 1.0.0
+version: 1.0.2
 type: website
 image: ./cover.jpg
 keywords: docsify, plugin, opengraph, twitter-card, meta-tags, social-sharing
@@ -16,6 +16,7 @@ A robust Docsify plugin that automatically generates Open Graph and Twitter Card
 [![ES5 Compatible](https://img.shields.io/badge/ES5-Compatible-green.svg)](https://kangax.github.io/compat-table/es5/)
 [![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-brightgreen.svg)](#)
 [![Test Coverage](https://img.shields.io/badge/Tests-15%2B%20unit%20%7C%204%2B%20integration-blue.svg)](/tests/)
+[![Social Media Ready](https://img.shields.io/badge/Social%20Media-Ready-blue.svg)](#-social-media-support)
 
 ## ✨ Features
 

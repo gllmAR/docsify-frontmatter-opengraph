@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Share Generator - Test Your Meta Tags</title>
+    <style>
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1000px; 
+            margin: 40px auto; 
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        .container { 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 { color: #333; margin-bottom: 10px; }
+        .subtitle { color: #666; margin-bottom: 30px; font-size: 1.1em; }
+        .section { 
+            margin: 30px 0; 
+            padding: 25px; 
+            background: #f8f9fa; 
+            border-radius: 8px; 
+            border-left: 4px solid #007bff;
+        }
+        .url-box { 
+            background: #e9ecef; 
+            padding: 15px; 
+            border-radius: 6px; 
+            font-family: 'Monaco', 'Menlo', monospace; 
+            font-size: 14px;
+            word-break: break-all;
+            margin: 10px 0;
+            position: relative;
+        }
+        .copy-btn { 
+            background: #007bff; 
+            color: white; 
+            border: none; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 12px;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+        .copy-btn:hover { background: #0056b3; }
+        .test-links { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+            gap: 15px; 
+            margin: 20px 0;
+        }
+        .test-link { 
+            display: block; 
+            padding: 12px 20px; 
+            background: #28a745; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 6px; 
+            text-align: center;
+            transition: background 0.3s;
+        }
+        .test-link:hover { background: #1e7e34; color: white; }
+        .fb { background: #1877f2; }
+        .fb:hover { background: #166fe5; }
+        .twitter { background: #1da1f2; }
+        .twitter:hover { background: #1a91da; }
+        .linkedin { background: #0077b5; }
+        .linkedin:hover { background: #005885; }
+        .opengraph { background: #ff6b35; }
+        .opengraph:hover { background: #e55a2b; }
+        .status { 
+            padding: 15px; 
+            border-radius: 6px; 
+            margin: 15px 0;
+            font-weight: bold;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .page-select {
+            margin: 20px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 6px;
+            border: 2px solid #dee2e6;
+        }
+        select, input {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+        }
+        .generate-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin: 15px 0;
+        }
+        .generate-btn:hover { background: #0056b3; }
+        .results { margin-top: 30px; }
+        .info { 
+            background: #e3f2fd; 
+            border: 1px solid #bbdefb; 
+            color: #1565c0; 
+            padding: 15px; 
+            border-radius: 6px; 
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Social Media Share Generator</h1>
+        <p class="subtitle">Generate social media sharing URLs that work with crawlers and test your Open Graph meta tags</p>
+        
+        <div class="section">
+            <h2>📋 How It Works</h2>
+            <div class="info">
+                <strong>Problem:</strong> Social media crawlers don't execute JavaScript, so they can't see dynamically generated meta tags from your Docsify plugin.<br><br>
+                <strong>Solution:</strong> Use static HTML files with pre-rendered meta tags for social sharing, then redirect users to your actual Docsify pages.
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Select Page to Share</h2>
+            <div class="page-select">
+                <label for="pageSelect">Choose a page:</label>
+                <select id="pageSelect">
+                    <option value="documentation">📚 Documentation</option>
+                    <option value="getting-started">🚀 Getting Started</option>
+                    <option value="api-reference">📖 API Reference</option>
+                    <option value="examples">💡 Examples</option>
+                    <option value="tests">🧪 Tests</option>
+                </select>
+                
+                <label for="customUrl">Or enter custom URL:</label>
+                <input type="url" id="customUrl" placeholder="https://gllmar.github.io/docsify-frontmatter-opengraph/#/your-page">
+                
+                <button class="generate-btn" onclick="generateShareUrls()">🔗 Generate Share URLs</button>
+            </div>
+        </div>
+
+        <div class="results" id="results" style="display: none;">
+            <div class="section">
+                <h2>📱 Social Media Share URLs</h2>
+                <p>Use these URLs when sharing on social media to ensure proper meta tag display:</p>
+                
+                <div id="shareUrls"></div>
+            </div>
+
+            <div class="section">
+                <h2>🧪 Test Your Meta Tags</h2>
+                <p>Use these tools to verify your Open Graph and Twitter Card meta tags:</p>
+                
+                <div class="test-links">
+                    <a href="#" class="test-link fb" id="fbTest" target="_blank">
+                        📘 Facebook Debugger
+                    </a>
+                    <a href="#" class="test-link twitter" id="twitterTest" target="_blank">
+                        🐦 Twitter Validator
+                    </a>
+                    <a href="#" class="test-link linkedin" id="linkedinTest" target="_blank">
+                        💼 LinkedIn Inspector
+                    </a>
+                    <a href="#" class="test-link opengraph" id="opengraphTest" target="_blank">
+                        🔍 OpenGraph.xyz
+                    </a>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📋 Implementation Status</h2>
+                <div id="implementationStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = 'https://gllmar.github.io/docsify-frontmatter-opengraph';
+        
+        const pages = {
+            'documentation': {
+                title: 'Documentation',
+                description: 'Complete documentation for the Docsify Frontmatter OpenGraph Plugin',
+                staticUrl: `${baseUrl}/documentation.html`,
+                docsifyUrl: `${baseUrl}/#/documentation/`
+            },
+            'getting-started': {
+                title: 'Getting Started',
+                description: 'Quick start guide for the Docsify Frontmatter OpenGraph Plugin',
+                staticUrl: `${baseUrl}/getting-started.html`,
+                docsifyUrl: `${baseUrl}/#/documentation/getting-started/`
+            },
+            'api-reference': {
+                title: 'API Reference',
+                description: 'Complete API reference for the Docsify Frontmatter OpenGraph Plugin',
+                staticUrl: `${baseUrl}/api-reference.html`,
+                docsifyUrl: `${baseUrl}/#/documentation/api-reference/`
+            },
+            'examples': {
+                title: 'Examples',
+                description: 'Real-world examples and use cases for the Docsify Frontmatter OpenGraph Plugin',
+                staticUrl: `${baseUrl}/examples.html`,
+                docsifyUrl: `${baseUrl}/#/documentation/examples/`
+            },
+            'tests': {
+                title: 'Testing Suite',
+                description: 'Comprehensive testing suite for the Docsify Frontmatter OpenGraph Plugin',
+                staticUrl: `${baseUrl}/tests.html`,
+                docsifyUrl: `${baseUrl}/#/tests/`
+            }
+        };
+
+        function generateShareUrls() {
+            const selectedPage = document.getElementById('pageSelect').value;
+            const customUrl = document.getElementById('customUrl').value;
+            
+            let shareUrl, title;
+            
+            if (customUrl) {
+                shareUrl = customUrl;
+                title = 'Custom Page';
+            } else if (pages[selectedPage]) {
+                shareUrl = pages[selectedPage].staticUrl;
+                title = pages[selectedPage].title;
+            } else {
+                return;
+            }
+            
+            // Update test links
+            document.getElementById('fbTest').href = `https://developers.facebook.com/tools/debug/?q=${encodeURIComponent(shareUrl)}`;
+            document.getElementById('twitterTest').href = `https://cards-dev.twitter.com/validator?url=${encodeURIComponent(shareUrl)}`;
+            document.getElementById('linkedinTest').href = `https://www.linkedin.com/post-inspector/inspect/${encodeURIComponent(shareUrl)}`;
+            document.getElementById('opengraphTest').href = `https://www.opengraph.xyz/url/${encodeURIComponent(shareUrl)}`;
+            
+            // Generate share URLs
+            const shareUrls = [
+                {
+                    platform: 'Raw URL (for copying)',
+                    url: shareUrl,
+                    description: 'Copy this URL to share on any social media platform'
+                },
+                {
+                    platform: 'Facebook Share',
+                    url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+                    description: 'Direct Facebook share link'
+                },
+                {
+                    platform: 'Twitter Share',
+                    url: `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(title)}`,
+                    description: 'Direct Twitter share link'
+                },
+                {
+                    platform: 'LinkedIn Share',
+                    url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+                    description: 'Direct LinkedIn share link'
+                }
+            ];
+            
+            const shareUrlsHtml = shareUrls.map(item => `
+                <div style="margin: 15px 0;">
+                    <strong>${item.platform}:</strong><br>
+                    <div class="url-box">
+                        ${item.url}
+                        <button class="copy-btn" onclick="copyToClipboard('${item.url.replace(/'/g, "\\'")}')">Copy</button>
+                    </div>
+                    <small style="color: #666;">${item.description}</small>
+                </div>
+            `).join('');
+            
+            document.getElementById('shareUrls').innerHTML = shareUrlsHtml;
+            
+            // Implementation status
+            const isStaticFileImplemented = selectedPage && pages[selectedPage];
+            const statusHtml = `
+                <div class="status ${isStaticFileImplemented ? 'success' : 'warning'}">
+                    ${isStaticFileImplemented ? 
+                        '✅ Static HTML file generated! Social media crawlers will see proper meta tags.' :
+                        '⚠️ Custom URL detected. Make sure the target page has proper Open Graph meta tags in static HTML.'
+                    }
+                </div>
+                ${isStaticFileImplemented ? `
+                    <p><strong>Implementation Details:</strong></p>
+                    <ul>
+                        <li>Static file: <code>${pages[selectedPage].staticUrl}</code></li>
+                        <li>Contains proper Open Graph meta tags</li>
+                        <li>Automatically redirects users to: <code>${pages[selectedPage].docsifyUrl}</code></li>
+                        <li>Social media crawlers will read meta tags before redirect</li>
+                    </ul>
+                ` : ''}
+            `;
+            
+            document.getElementById('implementationStatus').innerHTML = statusHtml;
+            document.getElementById('results').style.display = 'block';
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Show feedback
+                event.target.textContent = 'Copied!';
+                setTimeout(() => {
+                    event.target.textContent = 'Copy';
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                event.target.textContent = 'Copied!';
+                setTimeout(() => {
+                    event.target.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+        
+        // Auto-generate for documentation on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            generateShareUrls();
+        });
+    </script>
+</body>
+</html>

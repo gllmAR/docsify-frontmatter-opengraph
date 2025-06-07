@@ -28,6 +28,76 @@
     
     <!-- Dark Mode Support -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@^5.0.0-rc/dist/themes/addons/core-dark.min.css" media="(prefers-color-scheme: dark)" />
+    
+    <!-- Social Media Crawler Support: Update meta tags based on URL parameters -->
+    <script>
+        (function() {
+            // Parse URL parameters for page-specific social sharing
+            const urlParams = new URLSearchParams(window.location.search);
+            const shareTarget = urlParams.get('share') || urlParams.get('page');
+            
+            // Page-specific meta data
+            const pageData = {
+                'documentation': {
+                    title: 'Documentation',
+                    description: 'Complete documentation for the Docsify Frontmatter OpenGraph Plugin - API reference, examples, and guides',
+                    image: 'https://gllmar.github.io/docsify-frontmatter-opengraph/documentation/cover.jpg',
+                    url: 'https://gllmar.github.io/docsify-frontmatter-opengraph/#/documentation/'
+                },
+                'getting-started': {
+                    title: 'Getting Started',
+                    description: 'Quick start guide for the Docsify Frontmatter OpenGraph Plugin - installation and basic configuration',
+                    image: 'https://gllmar.github.io/docsify-frontmatter-opengraph/documentation/getting-started/cover.jpg',
+                    url: 'https://gllmar.github.io/docsify-frontmatter-opengraph/#/documentation/getting-started/'
+                },
+                'api-reference': {
+                    title: 'API Reference',
+                    description: 'Complete API reference for the Docsify Frontmatter OpenGraph Plugin - configuration options and front-matter fields',
+                    image: 'https://gllmar.github.io/docsify-frontmatter-opengraph/documentation/api-reference/cover.jpg',
+                    url: 'https://gllmar.github.io/docsify-frontmatter-opengraph/#/documentation/api-reference/'
+                },
+                'examples': {
+                    title: 'Examples',
+                    description: 'Real-world examples and use cases for the Docsify Frontmatter OpenGraph Plugin',
+                    image: 'https://gllmar.github.io/docsify-frontmatter-opengraph/documentation/examples/cover.jpg',
+                    url: 'https://gllmar.github.io/docsify-frontmatter-opengraph/#/documentation/examples/'
+                },
+                'tests': {
+                    title: 'Testing Suite',
+                    description: 'Comprehensive testing suite for the Docsify Frontmatter OpenGraph Plugin - unit tests, integration tests, and test cases',
+                    image: 'https://gllmar.github.io/docsify-frontmatter-opengraph/tests/cover.jpg',
+                    url: 'https://gllmar.github.io/docsify-frontmatter-opengraph/#/tests/'
+                }
+            };
+            
+            // Update meta tags if page-specific data exists
+            if (shareTarget && pageData[shareTarget]) {
+                const data = pageData[shareTarget];
+                
+                // Update Open Graph tags
+                document.querySelector('meta[property="og:title"]').content = data.title;
+                document.querySelector('meta[property="og:description"]').content = data.description;
+                document.querySelector('meta[property="og:image"]').content = data.image;
+                document.querySelector('meta[property="og:url"]').content = data.url;
+                
+                // Update Twitter Card tags
+                document.querySelector('meta[name="twitter:title"]').content = data.title;
+                document.querySelector('meta[name="twitter:description"]').content = data.description;
+                document.querySelector('meta[name="twitter:image"]').content = data.image;
+                
+                // Update page title and description
+                document.title = data.title + ' - Docsify Frontmatter OpenGraph Plugin';
+                document.querySelector('meta[name="description"]').content = data.description;
+                
+                // Redirect to the actual page after a brief delay (for crawlers to read meta tags)
+                setTimeout(function() {
+                    if (window.location.hash !== data.url.split('#')[1]) {
+                        window.location.href = data.url;
+                    }
+                }, 100);
+            }
+        })();
+    </script>
 </head>
 
 <body>
