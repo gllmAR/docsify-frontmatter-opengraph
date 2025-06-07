@@ -68,16 +68,18 @@
     // Helper: Insert meta tag with error handling
     function insertMetaTag(attr, name, content) {
         try {
-            if (!content || !name || !attr) return;
+            if (content === null || content === undefined || !name || !attr) return false;
             
             var meta = document.createElement('meta');
             meta.setAttribute(attr, name);
-            meta.setAttribute('content', content);
+            meta.setAttribute('content', String(content));
             
             if (document.head) {
                 document.head.appendChild(meta);
+                return true;
             } else {
                 console.warn('Document head not found');
+                return false;
             }
         } catch (error) {
             console.warn('Error inserting meta tag:', error);
@@ -243,13 +245,39 @@
                 var basePath = (vm && vm.route && vm.route.path) ? vm.route.path : '/';
                 
                 // Image resolution with three-tier priority
-                var image = getImageUrl(currentFrontMatter.image, basePath) || 
-                           getCoverImage(basePath) ||
-                           (siteDefaults.image ? getImageUrl(siteDefaults.image, '/') : null) ||
-                           (config.defaultImage ? getImageUrl(config.defaultImage, '/') : null);
+                var image = null;
+                
+                // Try front-matter image first
+                if (currentFrontMatter.image) {
+                    image = getImageUrl(currentFrontMatter.image, basePath);
+                }
+                
+                // Try site defaults image
+                if (!image && siteDefaults.image) {
+                    image = getImageUrl(siteDefaults.image, '/');
+                }
+                
+                // Try config default image  
+                if (!image && config.defaultImage) {
+                    image = getImageUrl(config.defaultImage, '/');
+                }
+                
+                // Try cover image fallback
+                if (!image) {
+                    image = getCoverImage(basePath);
+                }
+                
+                console.log('Final resolved image:', image);
 
                 // Remove old meta tags
                 removeMetaTags();
+
+                // Debug logging
+                console.log('Frontmatter OpenGraph Plugin - Generating meta tags:');
+                console.log('Title:', title);
+                console.log('Description:', description);
+                console.log('Image:', image);
+                console.log('Type:', type);
 
                 // Insert Open Graph meta tags
                 insertMetaTag('property', 'og:title', title);
