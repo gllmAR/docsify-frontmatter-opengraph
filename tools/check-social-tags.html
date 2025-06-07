@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Meta Tags Checker</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .tag { margin: 10px 0; padding: 10px; background: #f8f9fa; border-left: 4px solid #007bff; }
+        .missing { border-left-color: #dc3545; background: #f8d7da; }
+        .present { border-left-color: #28a745; background: #d4edda; }
+        .updated { border-left-color: #ffc107; background: #fff3cd; }
+        pre { background: #e9ecef; padding: 10px; margin: 10px 0; border-radius: 4px; font-size: 12px; }
+        .button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        .button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Social Media Meta Tags Checker</h1>
+    <p>This tool checks if Open Graph and Twitter Card meta tags are present in the current page.</p>
+    
+    <button class="button" onclick="checkMetaTags()">🔄 Check Meta Tags</button>
+    <button class="button" onclick="simulateCrawler()">🤖 Simulate Social Media Crawler</button>
+    
+    <div id="results"></div>
+    
+    <h2>📝 Expected Meta Tags for Social Media</h2>
+    <pre>
+&lt;meta property="og:title" content="Page Title"&gt;
+&lt;meta property="og:description" content="Page Description"&gt;
+&lt;meta property="og:type" content="website"&gt;
+&lt;meta property="og:url" content="https://yoursite.com/"&gt;
+&lt;meta property="og:image" content="https://yoursite.com/cover.jpg"&gt;
+&lt;meta property="og:site_name" content="Site Name"&gt;
+
+&lt;meta name="twitter:card" content="summary_large_image"&gt;
+&lt;meta name="twitter:title" content="Page Title"&gt;
+&lt;meta name="twitter:description" content="Page Description"&gt;
+&lt;meta name="twitter:image" content="https://yoursite.com/cover.jpg"&gt;
+    </pre>
+
+    <script>
+        const requiredTags = [
+            { attr: 'property', name: 'og:title', description: 'Open Graph Title' },
+            { attr: 'property', name: 'og:description', description: 'Open Graph Description' },
+            { attr: 'property', name: 'og:type', description: 'Open Graph Type' },
+            { attr: 'property', name: 'og:url', description: 'Open Graph URL' },
+            { attr: 'property', name: 'og:image', description: 'Open Graph Image' },
+            { attr: 'property', name: 'og:site_name', description: 'Open Graph Site Name' },
+            { attr: 'name', name: 'twitter:card', description: 'Twitter Card Type' },
+            { attr: 'name', name: 'twitter:title', description: 'Twitter Title' },
+            { attr: 'name', name: 'twitter:description', description: 'Twitter Description' },
+            { attr: 'name', name: 'twitter:image', description: 'Twitter Image' }
+        ];
+
+        function checkMetaTags() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>🔍 Meta Tags Analysis</h2>';
+            
+            requiredTags.forEach(tag => {
+                const element = document.querySelector(`meta[${tag.attr}="${tag.name}"]`);
+                const div = document.createElement('div');
+                div.className = 'tag';
+                
+                if (element) {
+                    const content = element.getAttribute('content');
+                    const source = element.hasAttribute('data-docsify-frontmatter') ? 
+                        `Plugin ${element.getAttribute('data-docsify-frontmatter')}` : 'Static (index.html)';
+                    
+                    div.className += element.hasAttribute('data-docsify-frontmatter') ? ' updated' : ' present';
+                    div.innerHTML = `
+                        <strong>✅ ${tag.description}</strong><br>
+                        <code>&lt;meta ${tag.attr}="${tag.name}" content="${content}"&gt;</code><br>
+                        <small>Source: ${source}</small>
+                    `;
+                } else {
+                    div.className += ' missing';
+                    div.innerHTML = `
+                        <strong>❌ ${tag.description}</strong><br>
+                        <code>&lt;meta ${tag.attr}="${tag.name}"&gt;</code> - <em>Missing</em>
+                    `;
+                }
+                
+                results.appendChild(div);
+            });
+            
+            // Show all meta tags
+            const allMeta = document.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]');
+            const allDiv = document.createElement('div');
+            allDiv.innerHTML = `<h3>📋 All Social Media Meta Tags (${allMeta.length} found)</h3>`;
+            allMeta.forEach(meta => {
+                const pre = document.createElement('pre');
+                pre.textContent = meta.outerHTML;
+                allDiv.appendChild(pre);
+            });
+            results.appendChild(allDiv);
+        }
+
+        function simulateCrawler() {
+            // This simulates what a social media crawler would see
+            fetch(window.location.href)
+                .then(response => response.text())
+                .then(html => {
+                    const results = document.getElementById('results');
+                    const div = document.createElement('div');
+                    div.innerHTML = '<h2>🤖 Social Media Crawler Simulation</h2>';
+                    
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const crawlerMeta = doc.querySelectorAll('meta[property^="og:"], meta[name^="twitter:"]');
+                    
+                    if (crawlerMeta.length === 0) {
+                        div.innerHTML += `
+                            <div class="tag missing">
+                                <strong>⚠️ Crawler Issue Detected</strong><br>
+                                Social media crawlers would not see any Open Graph/Twitter meta tags because they don't execute JavaScript.<br>
+                                You need static meta tags in your index.html file.
+                            </div>
+                        `;
+                    } else {
+                        div.innerHTML += `
+                            <div class="tag present">
+                                <strong>✅ Crawler Would See ${crawlerMeta.length} Meta Tags</strong><br>
+                                Social media crawlers can access these static meta tags.
+                            </div>
+                        `;
+                        
+                        crawlerMeta.forEach(meta => {
+                            const pre = document.createElement('pre');
+                            pre.textContent = meta.outerHTML;
+                            div.appendChild(pre);
+                        });
+                    }
+                    
+                    results.appendChild(div);
+                })
+                .catch(error => {
+                    console.error('Error simulating crawler:', error);
+                });
+        }
+
+        // Auto-check when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(checkMetaTags, 1000); // Wait for Docsify to load
+        });
+    </script>
+</body>
+</html>

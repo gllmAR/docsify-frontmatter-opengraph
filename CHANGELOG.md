@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.2] - 2025-06-07
+
+### Fixed
+- **🔧 SOCIAL MEDIA CRAWLER FIX**: Added static meta tags to index.html for social media crawlers
+  - Added static Open Graph and Twitter Card meta tags in index.html
+  - Updated plugin to update existing static tags instead of duplicating them
+  - Plugin now marks tags with `data-docsify-frontmatter` attribute for tracking
+  - Social media crawlers can now properly read meta tags without JavaScript execution
+
+### Added
+- **🤖 Social Media Crawler Support**: Static meta tags in index.html that work without JavaScript
+- **🔍 Advanced Meta Tag Checker**: `check-social-tags.html` tool for comprehensive testing
+  - Checks both static and dynamic meta tags
+  - Simulates social media crawler behavior
+  - Shows the difference between what browsers see vs. what crawlers see
+
+### Improved
+- Plugin now intelligently updates existing meta tags instead of removing/recreating them
+- Better preservation of static meta tags from index.html
+- Enhanced tracking of plugin-managed vs. static meta tags
+
 ## [1.0.1] - 2025-06-07
 
 ### Fixed

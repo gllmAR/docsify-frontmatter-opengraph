@@ -55,7 +55,8 @@
                 var elements = document.querySelectorAll(sel);
                 for (var i = 0; i < elements.length; i++) {
                     var el = elements[i];
-                    if (el && el.parentNode) {
+                    // Only remove meta tags that were created by the plugin (not static ones from index.html)
+                    if (el && el.parentNode && el.getAttribute('data-docsify-frontmatter') === 'created') {
                         el.parentNode.removeChild(el);
                     }
                 }
@@ -70,16 +71,31 @@
         try {
             if (content === null || content === undefined || !name || !attr) return false;
             
-            var meta = document.createElement('meta');
-            meta.setAttribute(attr, name);
-            meta.setAttribute('content', String(content));
+            // Check if meta tag already exists (either static from index.html or dynamic)
+            var existingMeta = document.querySelector('meta[' + attr + '="' + name + '"]');
             
-            if (document.head) {
-                document.head.appendChild(meta);
+            if (existingMeta) {
+                // Update existing meta tag content
+                existingMeta.setAttribute('content', String(content));
+                // Mark as updated by plugin if it wasn't already
+                if (!existingMeta.hasAttribute('data-docsify-frontmatter')) {
+                    existingMeta.setAttribute('data-docsify-frontmatter', 'updated');
+                }
                 return true;
             } else {
-                console.warn('Document head not found');
-                return false;
+                // Create new meta tag
+                var meta = document.createElement('meta');
+                meta.setAttribute(attr, name);
+                meta.setAttribute('content', String(content));
+                meta.setAttribute('data-docsify-frontmatter', 'created');
+                
+                if (document.head) {
+                    document.head.appendChild(meta);
+                    return true;
+                } else {
+                    console.warn('Document head not found');
+                    return false;
+                }
             }
         } catch (error) {
             console.warn('Error inserting meta tag:', error);
