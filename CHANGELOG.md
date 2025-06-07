@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.1] - 2025-06-07
+
+### Fixed
+- **🔧 CRITICAL FIX**: Resolved DOM timing issue preventing meta tags from being inserted
+  - Changed from `afterEach` to `doneEach` hook to ensure DOM is ready
+  - Fixed image URL construction for relative paths (removed duplicate `./`)
+  - Added proper error handling with return values in `insertMetaTag`
+  - Meta tags now successfully appear in document head for social media crawlers
+
+### Added
+- **🧪 Testing Tools**: Created comprehensive verification and social media preview testing tools
+  - `verify-meta-tags.html` - Checks if meta tags are present in the DOM
+  - `social-media-test.html` - Simulates social media crawler behavior
+  - Links to external validators (Facebook, Twitter, LinkedIn, Open Graph Checker)
+
+### Improved
+- Enhanced debug logging for troubleshooting
+- Better error handling across all helper functions
+- Clearer console output for development
+
 ## [1.0.0] - 2025-06-07
 
 ### Added

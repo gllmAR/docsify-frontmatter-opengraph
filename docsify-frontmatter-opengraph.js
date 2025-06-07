@@ -83,6 +83,7 @@
             }
         } catch (error) {
             console.warn('Error inserting meta tag:', error);
+            return false;
         }
     }
 
@@ -99,8 +100,16 @@
                 return location.origin + img;
             }
             
+            // Handle relative path starting with ./ - remove the ./
+            if (img.indexOf('./') === 0) {
+                img = img.substring(2);
+            }
+            
             // Handle relative path - compatible with older browsers
             var cleanBasePath = basePath.replace(/\/[^/]*$/, '/');
+            if (cleanBasePath === '/') {
+                return location.origin + '/' + img;
+            }
             return location.origin + cleanBasePath + img;
         } catch (error) {
             console.warn('Error processing image URL:', error);
@@ -206,13 +215,17 @@
         });
         
         // Process HTML and inject meta tags
-        hook.afterEach(function (html, next) {
+        hook.doneEach(function () {
             try {
+                // Get current path for debugging
+                var path = window.location.pathname + window.location.hash;
+                console.log('doneEach hook triggered for path:', path);
+                
                 // Get default configuration from docsify config
                 var config = (window.$docsify && window.$docsify.frontmatterOpenGraph) || {};
                 
                 // Apply variable substitution to the HTML content using stored front-matter
-                html = substituteVariables(html, currentFrontMatter);
+                // Note: This is now handled in the separate afterEach hook
                 
                 // Three-tier priority system:
                 // 1. Page front-matter (highest priority)
@@ -320,7 +333,17 @@
 
             } catch (error) {
                 console.error('Error in frontmatter-opengraph plugin:', error);
-            } finally {
+            }
+        });
+        
+        // Separate hook for variable substitution in HTML content
+        hook.afterEach(function (html, next) {
+            try {
+                // Apply variable substitution to the HTML content using stored front-matter
+                html = substituteVariables(html, currentFrontMatter);
+                next(html);
+            } catch (error) {
+                console.error('Error in variable substitution:', error);
                 next(html);
             }
         });

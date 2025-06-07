@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Media Preview Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .preview-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            background: #f9f9f9;
+        }
+        .preview-card h3 {
+            margin-top: 0;
+            color: #1877f2;
+        }
+        .meta-list {
+            list-style: none;
+            padding: 0;
+        }
+        .meta-list li {
+            background: #fff;
+            margin: 5px 0;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 4px solid #28a745;
+        }
+        .missing {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+        .test-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-size: 14px;
+        }
+        .test-btn:hover {
+            background: #0056b3;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .info { color: #17a2b8; font-style: italic; }
+        .preview-image {
+            max-width: 300px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Social Media Preview Test</h1>
+    <p>This tool simulates what social media platforms see when they crawl your Docsify site.</p>
+    
+    <div>
+        <button class="test-btn" onclick="testMainSite()">Test Main Site (/)</button>
+        <button class="test-btn" onclick="testDocumentationPage()">Test Documentation Page</button>
+        <button class="test-btn" onclick="testWithFrontmatter()">Test Page with Front-matter</button>
+        <button class="test-btn" onclick="testOpenGraphValidators()">Test with Real Validators</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script>
+        async function fetchMetaTags(url) {
+            try {
+                const response = await fetch(url);
+                const html = await response.text();
+                
+                // Create a temporary DOM to parse the HTML
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                
+                const metaTags = {};
+                
+                // Extract Open Graph tags
+                const ogTags = doc.querySelectorAll('meta[property^="og:"]');
+                ogTags.forEach(tag => {
+                    metaTags[tag.getAttribute('property')] = tag.getAttribute('content');
+                });
+                
+                // Extract Twitter Card tags
+                const twitterTags = doc.querySelectorAll('meta[name^="twitter:"]');
+                twitterTags.forEach(tag => {
+                    metaTags[tag.getAttribute('name')] = tag.getAttribute('content');
+                });
+                
+                return { success: true, metaTags, html };
+            } catch (error) {
+                return { success: false, error: error.message };
+            }
+        }
+        
+        function displayResults(title, result) {
+            const resultsDiv = document.getElementById('results');
+            
+            let html = `<div class="preview-card">
+                <h3>${title}</h3>`;
+            
+            if (!result.success) {
+                html += `<p class="error">❌ Error: ${result.error}</p>`;
+            } else if (Object.keys(result.metaTags).length === 0) {
+                html += `<p class="error">❌ No Open Graph or Twitter Card meta tags found!</p>`;
+            } else {
+                html += `<p class="success">✅ Found ${Object.keys(result.metaTags).length} meta tags</p>`;
+                
+                // Display meta tags
+                html += '<ul class="meta-list">';
+                
+                const expectedTags = [
+                    'og:title', 'og:description', 'og:type', 'og:url', 'og:image',
+                    'twitter:card', 'twitter:title', 'twitter:description', 'twitter:image'
+                ];
+                
+                expectedTags.forEach(tag => {
+                    const value = result.metaTags[tag];
+                    const className = value ? '' : 'missing';
+                    const status = value ? '✅' : '❌';
+                    const content = value || 'Missing';
+                    
+                    html += `<li class="${className}">
+                        ${status} <strong>${tag}:</strong> ${content}
+                    </li>`;
+                });
+                
+                html += '</ul>';
+                
+                // Show preview if image exists
+                const imageUrl = result.metaTags['og:image'] || result.metaTags['twitter:image'];
+                if (imageUrl) {
+                    html += `<p><strong>Preview Image:</strong></p>
+                        <img src="${imageUrl}" alt="OpenGraph Image" class="preview-image" 
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <p style="display:none;" class="error">❌ Image failed to load</p>`;
+                }
+            }
+            
+            html += '</div>';
+            resultsDiv.innerHTML = html + resultsDiv.innerHTML;
+        }
+        
+        async function testMainSite() {
+            const result = await fetchMetaTags('./index.html');
+            displayResults('Main Site Test', result);
+        }
+        
+        async function testDocumentationPage() {
+            const result = await fetchMetaTags('./documentation/');
+            displayResults('Documentation Page Test', result);
+        }
+        
+        async function testWithFrontmatter() {
+            // Create a test page with front-matter
+            const testContent = `---
+title: Test Page with Front-matter
+description: This is a test page to verify front-matter parsing
+image: ./test-image.jpg
+type: article
+author: Test Author
+---
+
+# Test Page
+
+This page has front-matter that should be used for Open Graph tags.`;
+            
+            displayResults('Front-matter Test', { 
+                success: true, 
+                metaTags: { 
+                    'info': 'This test would require a live page with front-matter. Check console logs in the main site for front-matter processing.' 
+                } 
+            });
+        }
+        
+        function testOpenGraphValidators() {
+            const currentUrl = window.location.origin + '/index.html';
+            const validators = [
+                { name: 'Facebook Sharing Debugger', url: `https://developers.facebook.com/tools/debug/?q=${encodeURIComponent(currentUrl)}` },
+                { name: 'Twitter Card Validator', url: `https://cards-dev.twitter.com/validator?url=${encodeURIComponent(currentUrl)}` },
+                { name: 'LinkedIn Post Inspector', url: `https://www.linkedin.com/post-inspector/inspect/${encodeURIComponent(currentUrl)}` },
+                { name: 'Open Graph Checker', url: `https://opengraphcheck.com/result.php?url=${encodeURIComponent(currentUrl)}` }
+            ];
+            
+            let html = `<div class="preview-card">
+                <h3>🔗 External Validator Tests</h3>
+                <p class="info">Click the links below to test your site with real social media validators:</p>
+                <ul>`;
+            
+            validators.forEach(validator => {
+                html += `<li><a href="${validator.url}" target="_blank" rel="noopener">${validator.name}</a></li>`;
+            });
+            
+            html += `</ul>
+                <p><strong>Test URL:</strong> <code>${currentUrl}</code></p>
+                <p class="info">💡 These external tools will show you exactly what social media platforms see when someone shares your link.</p>
+            </div>`;
+            
+            document.getElementById('results').innerHTML = html + document.getElementById('results').innerHTML;
+        }
+        
+        // Auto-run main site test on page load
+        window.onload = function() {
+            setTimeout(() => {
+                document.getElementById('results').innerHTML = '<p class="info">🚀 Running initial test...</p>';
+                testMainSite();
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

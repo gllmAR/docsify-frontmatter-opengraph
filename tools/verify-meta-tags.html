@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meta Tags Verification</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .meta-tag {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+        .found { background: #d4edda; border-color: #28a745; }
+        .missing { background: #f8d7da; border-color: #dc3545; }
+        .refresh-btn {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .refresh-btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Meta Tags Verification</h1>
+    <p>This page checks if Open Graph and Twitter Card meta tags are present in the main site.</p>
+    
+    <button class="refresh-btn" onclick="checkMetaTags()">Check Meta Tags</button>
+    
+    <div id="results"></div>
+
+    <script>
+        function checkMetaTags() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>Checking meta tags...</h2>';
+            
+            // Open the main site in a hidden iframe to check its meta tags
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = './index.html';
+            document.body.appendChild(iframe);
+            
+            iframe.onload = function() {
+                try {
+                    const doc = iframe.contentDocument || iframe.contentWindow.document;
+                    
+                    const expectedTags = [
+                        { selector: 'meta[property="og:title"]', name: 'Open Graph Title' },
+                        { selector: 'meta[property="og:description"]', name: 'Open Graph Description' },
+                        { selector: 'meta[property="og:type"]', name: 'Open Graph Type' },
+                        { selector: 'meta[property="og:url"]', name: 'Open Graph URL' },
+                        { selector: 'meta[property="og:image"]', name: 'Open Graph Image' },
+                        { selector: 'meta[name="twitter:card"]', name: 'Twitter Card' },
+                        { selector: 'meta[name="twitter:title"]', name: 'Twitter Title' },
+                        { selector: 'meta[name="twitter:description"]', name: 'Twitter Description' },
+                        { selector: 'meta[name="twitter:image"]', name: 'Twitter Image' }
+                    ];
+                    
+                    let html = '<h2>Meta Tags Status</h2>';
+                    let foundCount = 0;
+                    
+                    expectedTags.forEach(tag => {
+                        const element = doc.querySelector(tag.selector);
+                        const found = element !== null;
+                        if (found) foundCount++;
+                        
+                        const content = found ? element.getAttribute('content') : 'Not found';
+                        const cssClass = found ? 'found' : 'missing';
+                        
+                        html += `
+                            <div class="meta-tag ${cssClass}">
+                                <strong>${tag.name}</strong><br>
+                                Selector: <code>${tag.selector}</code><br>
+                                Content: <code>${content}</code>
+                            </div>
+                        `;
+                    });
+                    
+                    html = `<h2>Results: ${foundCount}/${expectedTags.length} meta tags found</h2>` + html;
+                    
+                    if (foundCount === expectedTags.length) {
+                        html = '<div style="background: #d4edda; padding: 15px; border-radius: 4px; margin-bottom: 20px;"><strong>✅ Success!</strong> All meta tags are present.</div>' + html;
+                    } else {
+                        html = '<div style="background: #f8d7da; padding: 15px; border-radius: 4px; margin-bottom: 20px;"><strong>❌ Issue:</strong> Some meta tags are missing.</div>' + html;
+                    }
+                    
+                    results.innerHTML = html;
+                    
+                } catch (error) {
+                    results.innerHTML = '<div class="meta-tag missing">Error accessing iframe content: ' + error.message + '</div>';
+                }
+                
+                // Clean up
+                document.body.removeChild(iframe);
+            };
+            
+            iframe.onerror = function() {
+                results.innerHTML = '<div class="meta-tag missing">Error loading the main site</div>';
+                document.body.removeChild(iframe);
+            };
+        }
+        
+        // Auto-check on page load
+        window.onload = function() {
+            setTimeout(checkMetaTags, 1000);
+        };
+    </script>
+</body>
+</html>
